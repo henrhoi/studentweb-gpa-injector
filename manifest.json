@@ -1,0 +1,33 @@
+{
+  "name": "Studentweb - GPA Injector",
+  "version": "1.0",
+  "description": "Calculates mean grade and plots grade distribution!",
+  "permissions": ["tabs", "*://fsweb.no/studentweb/resultater.jsf"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://fsweb.no/studentweb/resultater.jsf"],
+      "js": ["thirdParty/jquery.min.js", "thirdParty/canvasjs.min.js", "gpa_injector.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/gray/icon-16.png",
+      "32": "icons/gray/icon-32.png",
+      "48": "icons/gray/icon-48.png",
+      "128": "icons/gray/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/gray/icon-16.png",
+    "32": "icons/gray/icon-32.png",
+    "48": "icons/gray/icon-48.png",
+    "128": "icons/gray/icon-128.png"
+  },
+  "manifest_version": 2
+}
