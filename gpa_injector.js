@@ -97,7 +97,6 @@ theadContent.appendChild(th1);
 theadContent.appendChild(th2);
 
 // Removing native footer on tables
-//insertPoint.parentNode.insertBefore(gpaTableDiv, insertPoint);
 contentDiv.appendChild(gpaTableDiv);
 let footer = $(gpaTableDiv).find("p").get(0);
 footer.className = "";
@@ -113,8 +112,6 @@ plotDiv.style = "width: 100%; height: 400px;";
 
 contentDiv.appendChild(plotDiv);
 contentDiv.appendChild(footer);
-//insertPoint.parentNode.insertBefore(plotDiv, insertPoint);
-//insertPoint.parentNode.insertBefore(footer, insertPoint);
 
 var chart = new CanvasJS.Chart("container", {
     animationEnabled: true,
