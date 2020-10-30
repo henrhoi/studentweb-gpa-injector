@@ -84,6 +84,18 @@ for (const [grade, value] of Object.entries(gradings)) {
 
 gpa = gpa / totalGrades;
 
+// Calculating cummulative gpas per semester
+gpas = {};
+Object.values(grades).map((gradeList, i, arr) => {
+    let semester = Object.keys(grades)[i];
+    cumGrades = arr
+        .slice(0, i + 1)
+        .flat()
+        .map((entry) => entry.y);
+    cummulativeGPA = cumGrades.reduce((a, b) => a + b, 0) / cumGrades.length;
+    gpas[semester] = cummulativeGPA;
+});
+
 // Adding toggle button
 let toggleButton = document.createElement("button");
 let toggleSpan = document.createElement("span");
@@ -141,7 +153,7 @@ gradeToLabelDict = {
     3: "C",
     2: "D",
     1: "E",
-    0: "E",
+    0: "F",
 };
 
 values = Object.values(grades).flat();
@@ -161,8 +173,6 @@ stripLines = Object.values(grades).map((gradeList, index, array) => {
     };
 });
 
-console.log(grades);
-
 var linechart = new CanvasJS.Chart("container2", {
     animationEnabled: true,
     theme: "light2",
@@ -174,7 +184,8 @@ var linechart = new CanvasJS.Chart("container2", {
     axisX: {
         minimum: -0.5,
         interval: 1,
-        title: "",
+        title: "Course",
+        titleFontSize: 15,
         stripLines: stripLines,
         labelFormatter: function (e) {
             if (e.value > -1 && e.value < values.length) {
@@ -184,10 +195,12 @@ var linechart = new CanvasJS.Chart("container2", {
         },
     },
     axisY: {
+        title: "Grade",
+        titleFontSize: 15,
         interval: 1,
-        minimum: 0,
-        maximum: 6,
-        margin: 30,
+        minimum: -0.5,
+        maximum: 5.5,
+        margin: 1,
         labelFormatter: function (e) {
             return gradeToLabelDict[e.value];
         },
@@ -203,17 +216,72 @@ var linechart = new CanvasJS.Chart("container2", {
         contentFormatter: function (e) {
             let y = gradeToLabelDict[e.entries[0].dataPoint.y];
             let x = values[e.entries[0].dataPoint.x].label;
-            return `${x}: ${y}`;
+            return `<b>Course:</b> ${x} <br> <b>Grade:</b> ${y}`;
         },
     },
 });
 linechart.render();
 
+// Plotting cummulative GPA over time
+let subplotDiv = document.createElement("div");
+subplotDiv.style = "margin-top: 10px;";
+
+let lineplotDivGPA = document.createElement("div");
+lineplotDivGPA.id = "container3";
+lineplotDivGPA.style = "width: 50%; height: 400px; display: inline-block";
+contentDiv.appendChild(subplotDiv);
+subplotDiv.appendChild(lineplotDivGPA);
+
+let gpaValues = Object.entries(gpas).map(([semester, cumGPA], i) => {
+    return {
+        x: i,
+        y: cumGPA,
+        label: semester,
+    };
+});
+
+var linechartGPA = new CanvasJS.Chart("container3", {
+    animationEnabled: true,
+    theme: "light2",
+    title: {
+        text: "GPA over time",
+        fontSize: 20,
+        fontFamily: "Arial, sans-serif",
+    },
+    axisX: {
+        minimum: -0.5,
+        interval: 1,
+    },
+    axisY: {
+        interval: 1,
+        minimum: 0,
+        maximum: 5.5,
+        margin: 20,
+        titleFontSize: 15,
+        title: "GPA",
+    },
+    data: [
+        {
+            type: "spline",
+            dataPoints: gpaValues,
+        },
+    ],
+    toolTip: {
+        contentFormatter: function (e) {
+            let y = e.entries[0].dataPoint.y.toFixed(3);
+            let x = e.entries[0].dataPoint.label;
+            return `<b>${x}</b>: ${y} <br> <i>Total GPA after this semester</i>`;
+        },
+    },
+});
+linechartGPA.render();
+
 // Adding distribution plot div
 let plotDiv = document.createElement("div");
 plotDiv.id = "container";
-plotDiv.style = "width: 100%; height: 400px; margin-top: 20px;";
-contentDiv.appendChild(plotDiv);
+plotDiv.style =
+    "width: 50%; height: 400px; margin-top: 20px; display: inline-block";
+subplotDiv.appendChild(plotDiv);
 contentDiv.appendChild(footer);
 
 var barchart = new CanvasJS.Chart("container", {
@@ -225,6 +293,7 @@ var barchart = new CanvasJS.Chart("container", {
         fontFamily: "Arial, sans-serif",
     },
     axisY: {
+        titleFontSize: 15,
         title: "Count",
     },
     data: [
@@ -254,8 +323,14 @@ toggleButton.onclick = function (event) {
     toggle = !toggle;
     let buttonText = toggle ? "Hide" : "Show";
     let display = toggle ? "display: block;" : "display: none;";
-    contentDiv.style = `width: 100%; height: 950px; ${display}`;
+    contentDiv.style = `width: 100%; height: 1000px; ${display}`;
     toggleSpan.innerHTML = `${buttonText} GPA and Grade Distribution <br>`;
     barchart.render();
     linechart.render();
+    linechartGPA.render();
 };
+
+// Custom styling
+var sheet = document.createElement("style");
+sheet.innerHTML = ".canvasjs-chart-credit {display: none;}";
+document.body.appendChild(sheet);
