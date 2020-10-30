@@ -315,8 +315,6 @@ var barchart = new CanvasJS.Chart("container", {
     ],
 });
 barchart.render();
-let credits = $(".canvasjs-chart-credit").get(0);
-credits.parentNode.removeChild(credits);
 
 // Setting eventlistener to togglbutton
 toggleButton.onclick = function (event) {
