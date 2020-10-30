@@ -48,7 +48,7 @@ const gradingPoints = {
 grades = {};
 
 // Calculating GPA
-tbody.find("tr").each(function () {
+$(tbody.find("tr").get().reverse()).each(function () {
     let resultColumn = $(this).find("td").get(grade_column_idx);
     let grade = $(resultColumn).find("span").get(0).innerHTML;
 
