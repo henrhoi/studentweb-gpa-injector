@@ -10,6 +10,8 @@ chrome.runtime.sendMessage({ newIconPath: "icons/active/icon-32.png" });
 
 // Variables custom to the site
 let grade_column_idx = 5;
+let semester_column_idx = 0;
+let course_column_idx = 1;
 let result_tag = "table";
 let toggle = false;
 
@@ -43,6 +45,8 @@ const gradingPoints = {
     F: 0,
 };
 
+grades = {};
+
 // Calculating GPA
 tbody.find("tr").each(function () {
     let resultColumn = $(this).find("td").get(grade_column_idx);
@@ -50,6 +54,25 @@ tbody.find("tr").each(function () {
 
     if (grade in gradings) {
         gradings[grade] += 1;
+
+        // Add grading to semester
+        let semesterColumn = $(this).find("td").get(semester_column_idx);
+        let semester = $(semesterColumn).find("div").get(2).innerHTML;
+
+        let courseColumn = $(this).find("td").get(course_column_idx);
+        let courseCode = $(courseColumn).find("div div").get(1).innerHTML;
+        let courseName = $(courseColumn).find("div div").get(2).innerHTML;
+
+        let gradeDict = {
+            y: gradingPoints[grade],
+            x: totalGrades,
+            label: `${courseCode} ${courseName}`,
+        };
+        if (semester in grades) {
+            grades[semester].push(gradeDict);
+        } else {
+            grades[semester] = [gradeDict];
+        }
         totalGrades += 1;
     }
 });
@@ -105,19 +128,100 @@ footer.innerHTML =
 let footerParent = $(gpaTableDiv).children()[0];
 footerParent.removeChild(footer);
 
-// Adding plot div
+// Plotting grades over time
+let lineplotDiv = document.createElement("div");
+lineplotDiv.id = "container2";
+lineplotDiv.style = "width: 100%; height: 400px;";
+
+contentDiv.appendChild(lineplotDiv);
+gradeToLabelDict = {
+    6: "",
+    5: "A",
+    4: "B",
+    3: "C",
+    2: "D",
+    1: "E",
+    0: "E",
+};
+
+values = Object.values(grades).flat();
+stripLines = Object.values(grades).map((gradeList, index, array) => {
+    let start_idx = array.slice(0, index).flat().length;
+    let end_idx = start_idx + gradeList.length;
+    let color = index % 2 === 0 ? "rgba(1,77,101,.1)" : "#FFFF";
+    return {
+        startValue: start_idx - 0.5,
+        endValue: end_idx - 0.5,
+        color: color,
+        labelBackgroundColor: "transparent",
+        labelFontColor: "gray",
+        labelPlacement: "inside",
+        labelAlign: "center",
+        label: Object.keys(grades)[index],
+    };
+});
+
+console.log(grades);
+
+var linechart = new CanvasJS.Chart("container2", {
+    animationEnabled: true,
+    theme: "light2",
+    title: {
+        text: "Grades over time",
+        fontSize: 20,
+        fontFamily: "Arial, sans-serif",
+    },
+    axisX: {
+        minimum: -0.5,
+        interval: 1,
+        title: "",
+        stripLines: stripLines,
+        labelFormatter: function (e) {
+            if (e.value > -1 && e.value < values.length) {
+                return values[e.value].label.split(" ")[0];
+            }
+            return "";
+        },
+    },
+    axisY: {
+        interval: 1,
+        minimum: 0,
+        maximum: 6,
+        margin: 30,
+        labelFormatter: function (e) {
+            return gradeToLabelDict[e.value];
+        },
+    },
+    data: [
+        {
+            type: "line",
+            indexLabelFontSize: 16,
+            dataPoints: values,
+        },
+    ],
+    toolTip: {
+        contentFormatter: function (e) {
+            let y = gradeToLabelDict[e.entries[0].dataPoint.y];
+            let x = values[e.entries[0].dataPoint.x].label;
+            return `${x}: ${y}`;
+        },
+    },
+});
+linechart.render();
+
+// Adding distribution plot div
 let plotDiv = document.createElement("div");
 plotDiv.id = "container";
-plotDiv.style = "width: 100%; height: 400px;";
-
+plotDiv.style = "width: 100%; height: 400px; margin-top: 20px;";
 contentDiv.appendChild(plotDiv);
 contentDiv.appendChild(footer);
 
-var chart = new CanvasJS.Chart("container", {
+var barchart = new CanvasJS.Chart("container", {
     animationEnabled: true,
-    theme: "light1",
+    theme: "light2",
     title: {
         text: "Grade distribution",
+        fontSize: 20,
         fontFamily: "Arial, sans-serif",
     },
     axisY: {
@@ -126,7 +230,7 @@ var chart = new CanvasJS.Chart("container", {
     data: [
         {
             type: "column",
-            showInLegend: true,
+            showInLegend: false,
 
             color: "#015C6F",
             legendText: "Count",
@@ -141,7 +245,7 @@ var chart = new CanvasJS.Chart("container", {
         },
     ],
 });
-chart.render();
+barchart.render();
 let credits = $(".canvasjs-chart-credit").get(0);
 credits.parentNode.removeChild(credits);
 
@@ -150,7 +254,8 @@ toggleButton.onclick = function (event) {
     toggle = !toggle;
     let buttonText = toggle ? "Hide" : "Show";
     let display = toggle ? "display: block;" : "display: none;";
-    contentDiv.style = `width: 100%; height: 550px; ${display}`;
+    contentDiv.style = `width: 100%; height: 950px; ${display}`;
     toggleSpan.innerHTML = `${buttonText} GPA and Grade Distribution <br>`;
-    chart.render();
+    barchart.render();
+    linechart.render();
 };
