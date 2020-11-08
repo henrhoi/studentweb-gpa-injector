@@ -1,7 +1,7 @@
 {
   "name": "Studentweb - GPA Injector",
-  "version": "1.0",
-  "description": "Calculates mean grade and plots grade distribution!",
+  "version": "2.0",
+  "description": "Calculates mean grade and plots grade distribution on studweb by Feide for norwegian universities!",
   "permissions": ["tabs", "*://fsweb.no/studentweb/resultater.jsf"],
   "background": {
     "scripts": ["background.js"],

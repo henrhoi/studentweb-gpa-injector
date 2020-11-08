@@ -47,12 +47,18 @@ const gradingPoints = {
 
 grades = {};
 
+let possibleGrades = ["A", "A", "B", "C"];
+
 // Calculating GPA
 $(tbody.find("tr").get().reverse()).each(function () {
     let resultColumn = $(this).find("td").get(grade_column_idx);
     let grade = $(resultColumn).find("span").get(0).innerHTML;
 
     if (grade in gradings) {
+        // Uncomment to generate random grades for display purposes
+        // let choiceIndex = Math.floor(Math.random() * possibleGrades.length);
+        // grade = possibleGrades[choiceIndex];
+
         gradings[grade] += 1;
 
         // Add grading to semester
